@@ -24,6 +24,7 @@ import (
 
 	"github.com/ollama/ollama/api"
 	"github.com/ollama/ollama/app/lifecycle"
+	"github.com/ollama/ollama/format"
 	"github.com/stretchr/testify/require"
 )
 
@@ -340,4 +341,16 @@ func GenerateRequests() ([]api.GenerateRequest, [][]string) {
 			{"fourth", "july", "declaration", "independence"},
 			{"nitrogen", "oxygen", "carbon", "dioxide"},
 		}
+}
+
+func skipUnderMinVRAM(t *testing.T, gb uint64) {
+	// TODO use info API in the future
+	if s := os.Getenv("OLLAMA_MAX_VRAM"); s != "" {
+		maxVram, err := strconv.ParseUint(s, 10, 64)
+		require.NoError(t, err)
+		// Don't hammer on small VRAM cards...
+		if maxVram < gb*format.GibiByte {
+			t.Skip("skipping with small VRAM to avoid timeouts")
+		}
+	}
 }
